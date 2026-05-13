@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sajawal Store — Stars & Premium</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0f1923;
+    --card:#182130;
+    --card2:#1c2a3a;
+    --border:rgba(255,255,255,0.06);
+    --blue:#3d9cf0;
+    --star:#f6c90e;
+    --prem:#b066f5;
+    --green:#3ecf6e;
+    --red:#e05c5c;
+    --muted:#6b8aaa;
+    --white:#ddeeff;
+    --font:'Plus Jakarta Sans',sans-serif;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--font);overflow-x:hidden}
+  .screen{display:none;flex-direction:column;min-height:100vh;animation:fadeIn 0.2s ease}
+  .screen.active{display:flex}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* TOP BAR */
+  .topbar{background:var(--card2);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:10}
+  .back-btn{background:none;border:none;color:var(--blue);font-size:14px;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:5px;padding:0}
+  .topbar-title{font-size:16px;font-weight:700;flex:1;text-align:center;color:var(--white)}
+  .topbar-spacer{width:60px}
+
+  /* HERO */
+  .hero{background:var(--card2);padding:22px 16px 18px;border-bottom:0.5px solid var(--border)}
+  .hero-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .avatar{width:52px;height:52px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex-shrink:0;border:2px solid rgba(61,156,240,0.4)}
+  .hero-name{font-size:18px;font-weight:800;color:#fff}
+  .hero-handle{font-size:13px;color:var(--muted);margin-top:2px}
+  .trust-row{display:flex;gap:8px;flex-wrap:wrap}
+  .trust-badge{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:0.5px solid var(--border);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--muted)}
+  .trust-badge.yt{color:#ff4444;border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.07)}
+  .trust-badge.tg{color:var(--blue);border-color:rgba(61,156,240,0.3);background:rgba(61,156,240,0.07)}
+  .trust-badge.ver{color:var(--green);border-color:rgba(62,207,110,0.3);background:rgba(62,207,110,0.07)}
+  .trust-icon{font-size:13px}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--card2);border-bottom:0.5px solid var(--border)}
+  .tab{flex:1;padding:12px 0;font-size:14px;font-weight:600;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;background:none;border-left:none;border-right:none;border-top:none;font-family:var(--font);transition:all 0.15s}
+  .tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+  /* SCROLL AREA */
+  .scroll{flex:1;padding:14px 16px;overflow-y:auto}
+  .sec-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin:0 0 10px 2px}
+
+  /* PACKAGE CARDS */
+  .pkg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+  .pkg{background:var(--card);border-radius:16px;padding:14px 12px;cursor:pointer;border:1.5px solid var(--border);transition:all 0.18s;position:relative;overflow:hidden}
+  .pkg::after{content:'';position:absolute;inset:0;border-radius:16px;opacity:0;transition:opacity 0.2s;background:rgba(246,201,14,0.04)}
+  .pkg:active::after{opacity:1}
+  .pkg.sel{border-color:var(--star);background:rgba(246,201,14,0.05)}
+  .pkg.prem-sel{border-color:var(--prem);background:rgba(176,102,245,0.05)}
+  .hot-badge{position:absolute;top:0;right:10px;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:0 0 8px 8px;letter-spacing:0.3px}
+  .save-badge{position:absolute;top:0;right:10px;background:var(--green);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:0 0 8px 8px;letter-spacing:0.3px}
+  .pkg-icon{font-size:24px;margin-bottom:8px}
+  .pkg-name{font-size:15px;font-weight:700;color:#fff}
+  .pkg-price{font-size:13px;color:var(--green);margin-top:4px;font-weight:600}
+  .pkg-per{font-size:11px;color:var(--muted);margin-top:2px}
+  .checkmark{position:absolute;top:10px;left:10px;width:18px;height:18px;border-radius:50%;background:var(--star);display:none;align-items:center;justify-content:center;font-size:10px}
+  .pkg.sel .checkmark{display:flex}
+  .pkg.prem-sel .checkmark{display:flex;background:var(--prem)}
+
+  /* PREMIUM CARDS */
+  .prem-pkg{background:var(--card);border-radius:16px;padding:14px 16px;cursor:pointer;border:1.5px solid var(--border);transition:all 0.18s;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+  .prem-pkg.sel{border-color:var(--prem);background:rgba(176,102,245,0.05)}
+  .pop-badge{position:absolute;top:0;right:14px;background:var(--prem);color:#fff;font-size:9px;font-weight:800;padding:3px 9px;border-radius:0 0 8px 8px}
+  .prem-left{display:flex;align-items:center;gap:12px}
+  .prem-icon{font-size:26px}
+  .prem-title{font-size:15px;font-weight:700;color:#fff}
+  .prem-dur{font-size:12px;color:var(--muted);margin-top:2px}
+  .prem-price{font-size:17px;font-weight:700;color:var(--green)}
+  .prem-save{font-size:11px;color:var(--prem);margin-top:2px}
+
+  /* USERNAME INPUT */
+  .input-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;display:block;letter-spacing:0.4px}
+  .uname-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;font-family:var(--font);margin-bottom:20px;transition:border 0.15s;outline:none}
+  .uname-input:focus{border-color:var(--blue)}
+  .uname-input::placeholder{color:var(--muted)}
+
+  /* BUY BAR */
+  .buy-bar{background:var(--card2);padding:12px 16px 20px;border-top:0.5px solid var(--border)}
+  .sel-info{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;height:16px}
+  .buy-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all 0.15s;letter-spacing:0.2px}
+  .buy-btn:disabled{background:rgba(61,156,240,0.2);color:var(--muted);cursor:not-allowed}
+  .buy-btn:not(:disabled):active{transform:scale(0.98);opacity:0.9}
+
+  /* PAYMENT SCREEN */
+  .pay-card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;border:0.5px solid var(--border)}
+  .pay-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--border)}
+  .pay-row:last-child{border-bottom:none}
+  .pay-label{font-size:13px;color:var(--muted)}
+  .pay-val{font-size:13px;font-weight:600;color:#fff;text-align:right;max-width:60%}
+  .pay-val.green{color:var(--green)}
+  .amount-box{background:var(--card);border-radius:16px;padding:18px 16px;margin-bottom:12px;text-align:center;border:1.5px solid rgba(246,201,14,0.3)}
+  .amount-label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+  .amount-val{font-size:30px;font-weight:800;color:var(--star);letter-spacing:-0.5px}
+  .amount-net{font-size:12px;color:var(--muted);margin-top:4px}
+  .wallet-box{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;border:1.5px solid rgba(61,156,240,0.3)}
+  .wallet-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.7px;text-transform:uppercase;margin-bottom:8px}
+  .wallet-addr{font-size:12px;color:var(--blue);word-break:break-all;font-family:'Courier New',monospace;line-height:1.6;background:rgba(61,156,240,0.06);padding:10px;border-radius:8px}
+  .copy-btn{width:100%;background:rgba(61,156,240,0.1);border:1px solid rgba(61,156,240,0.3);color:var(--blue);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;font-family:var(--font);transition:all 0.15s}
+  .copy-btn:active{background:rgba(61,156,240,0.2)}
+  .warning-box{background:rgba(246,201,14,0.06);border-radius:12px;padding:12px 14px;margin-bottom:14px;border:0.5px solid rgba(246,201,14,0.2);font-size:12px;color:rgba(246,201,14,0.8);line-height:1.6}
+
+  /* VERIFY SCREEN */
+  .verify-section{padding:16px}
+  .verify-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+  .verify-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+  .txid-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:#fff;font-size:12px;font-family:'Courier New',monospace;margin-bottom:12px;outline:none;transition:border 0.15s}
+  .txid-input:focus{border-color:var(--blue)}
+  .txid-input::placeholder{color:var(--muted);font-family:var(--font);font-size:13px}
+  .verify-btn{width:100%;background:var(--green);color:#fff;border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)}
+  .verify-btn:active{opacity:0.88;transform:scale(0.98)}
+  .status-box{border-radius:14px;padding:16px;margin-bottom:14px;text-align:center}
+  .status-box.checking{background:rgba(61,156,240,0.08);border:1px solid rgba(61,156,240,0.2)}
+  .status-box.success{background:rgba(62,207,110,0.08);border:1px solid rgba(62,207,110,0.2)}
+  .status-box.fail{background:rgba(224,92,92,0.08);border:1px solid rgba(224,92,92,0.2)}
+  .status-icon{font-size:30px;margin-bottom:8px}
+  .status-text{font-size:14px;font-weight:700;color:#fff}
+  .status-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .spinner{display:inline-block;width:24px;height:24px;border:3px solid rgba(61,156,240,0.2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* SUCCESS */
+  .success-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+  .success-icon{font-size:64px;margin-bottom:16px;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+  @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+  .success-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:8px}
+  .success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px}
+  .success-card{background:var(--card);border-radius:16px;padding:16px;width:100%;margin-bottom:20px;border:0.5px solid var(--border)}
+  .s-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border)}
+  .s-row:last-child{border-bottom:none}
+  .s-label{font-size:13px;color:var(--muted)}
+  .s-val{font-size:13px;font-weight:600;color:#fff}
+
+  /* ADMIN */
+  .admin-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+  .stat-card{background:var(--card);border-radius:14px;padding:14px;border:0.5px solid var(--border)}
+  .stat-num{font-size:24px;font-weight:800;color:#fff}
+  .stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;font-weight:500}
+  .order-item{background:var(--card);border-radius:14px;padding:14px;margin-bottom:8px;border-left:3px solid var(--star)}
+  .order-item.done{border-left-color:var(--green);opacity:0.7}
+  .order-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .order-id{font-size:11px;color:var(--muted);font-family:'Courier New',monospace}
+  .order-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .badge-p{background:rgba(246,201,14,0.15);color:var(--star)}
+  .badge-d{background:rgba(62,207,110,0.15);color:var(--green)}
+  .order-pkg{font-size:14px;font-weight:700;color:#fff}
+  .order-user{font-size:12px;color:var(--muted);margin-top:3px}
+  .order-meta{display:flex;justify-content:space-between;margin-top:8px;align-items:center}
+  .order-price{font-size:13px;color:var(--green);font-weight:600}
+  .order-time{font-size:11px;color:var(--muted)}
+  .mark-btn{background:rgba(62,207,110,0.15);border:1px solid rgba(62,207,110,0.3);color:var(--green);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;width:100%;font-family:var(--font)}
+  .txid-show{font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px;word-break:break-all}
+  .empty-state{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+  .empty-icon{font-size:32px;margin-bottom:8px}
+  .admin-access{padding:16px}
+  .admin-note{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;background:var(--card);border-radius:12px;padding:12px;border:0.5px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="home">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="avatar">S</div>
+      <div>
+        <div class="hero-name">Sajawal Store</div>
+        <div class="hero-handle">@sajawalbudhana3</div>
+      </div>
+    </div>
+    <div class="trust-row">
+      <div class="trust-badge yt"><span class="trust-icon">▶</span> 30K YouTube</div>
+      <div class="trust-badge tg"><span class="trust-icon">✈</span> Telegram Verified</div>
+      <div class="trust-badge ver"><span class="trust-icon">✓</span> Trusted Seller</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="tab-stars-btn" onclick="switchTab('stars')">⭐ Stars</button>
+    <button class="tab" id="tab-prem-btn" onclick="switchTab('premium')">💎 Premium</button>
+  </div>
+
+  <!-- STARS TAB -->
+  <div class="scroll" id="tab-stars">
+    <p class="sec-label" style="margin-top:2px">Stars packages</p>
+    <div class="pkg-grid">
+      <div class="pkg" onclick="selectPkg(this,'50 Stars','0.50','stars')">
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">⭐</div>
+        <div class="pkg-name">50 Stars</div>
+        <div class="pkg-price">0.50 USDT</div>
+        <div class="pkg-per">$0.010 per star</div>
+      </div>
+      <div class="pkg" onclick="selectPkg(this,'100 Stars','0.95','stars')">
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">⭐</div>
+        <div class="pkg-name">100 Stars</div>
+        <div class="pkg-price">0.95 USDT</div>
+        <div class="pkg-per">$0.0095 per star</div>
+      </div>
+      <div class="pkg" onclick="selectPkg(this,'250 Stars','2.20','stars')">
+        <div class="hot-badge">BEST DEAL</div>
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">🌟</div>
+        <div class="pkg-name">250 Stars</div>
+        <div class="pkg-price">2.20 USDT</div>
+        <div class="pkg-per">$0.0088 per star</div>
+      </div>
+      <div class="pkg" onclick="selectPkg(this,'500 Stars','4.00','stars')">
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">🌟</div>
+        <div class="pkg-name">500 Stars</div>
+        <div class="pkg-price">4.00 USDT</div>
+        <div class="pkg-per">$0.008 per star</div>
+      </div>
+      <div class="pkg" onclick="selectPkg(this,'1000 Stars','7.50','stars')">
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">💫</div>
+        <div class="pkg-name">1000 Stars</div>
+        <div class="pkg-price">7.50 USDT</div>
+        <div class="pkg-per">$0.0075 per star</div>
+      </div>
+      <div class="pkg" onclick="selectPkg(this,'2500 Stars','17.00','stars')">
+        <div class="save-badge">SAVE 15%</div>
+        <div class="checkmark">✓</div>
+        <div class="pkg-icon">💫</div>
+        <div class="pkg-name">2500 Stars</div>
+        <div class="pkg-price">17.00 USDT</div>
+        <div class="pkg-per">$0.0068 per star</div>
+      </div>
+    </div>
+    <label class="input-label">APNA TELEGRAM USERNAME</label>
+    <input class="uname-input" id="uname-stars" placeholder="@yourusername" autocomplete="off">
+  </div>
+
+  <!-- PREMIUM TAB -->
+  <div class="scroll" id="tab-premium" style="display:none">
+    <p class="sec-label" style="margin-top:2px">Premium plans</p>
+    <div class="prem-pkg" onclick="selectPkg(this,'Premium 1 Month','3.50','prem')">
+      <div class="prem-left">
+        <div class="prem-icon">💎</div>
+        <div>
+          <div class="prem-title">1 Month</div>
+          <div class="prem-dur">Telegram Premium — 30 din</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="prem-price">3.50 USDT</div>
+      </div>
+    </div>
+    <div class="prem-pkg" onclick="selectPkg(this,'Premium 3 Months','9.00','prem')">
+      <div class="pop-badge">POPULAR</div>
+      <div class="prem-left">
+        <div class="prem-icon">💎</div>
+        <div>
+          <div class="prem-title">3 Months</div>
+          <div class="prem-dur">Telegram Premium — 90 din</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="prem-price">9.00 USDT</div>
+        <div class="prem-save">14% bachat</div>
+      </div>
+    </div>
+    <div class="prem-pkg" onclick="selectPkg(this,'Premium 6 Months','16.00','prem')">
+      <div class="prem-left">
+        <div class="prem-icon">💎</div>
+        <div>
+          <div class="prem-title">6 Months</div>
+          <div class="prem-dur">Telegram Premium — 180 din</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="prem-price">16.00 USDT</div>
+        <div class="prem-save">24% bachat</div>
+      </div>
+    </div>
+    <div class="prem-pkg" onclick="selectPkg(this,'Premium 12 Months','28.00','prem')">
+      <div class="pop-badge">BEST VALUE</div>
+      <div class="prem-left">
+        <div class="prem-icon">👑</div>
+        <div>
+          <div class="prem-title">12 Months</div>
+          <div class="prem-dur">Telegram Premium — 365 din</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="prem-price">28.00 USDT</div>
+        <div class="prem-save">33% bachat</div>
+      </div>
+    </div>
+    <label class="input-label">APNA TELEGRAM USERNAME</label>
+    <input class="uname-input" id="uname-prem" placeholder="@yourusername" autocomplete="off">
+  </div>
+
+  <div class="buy-bar">
+    <div class="sel-info" id="sel-info">Package chunein aur username darj karein</div>
+    <button class="buy-btn" id="buy-btn" disabled onclick="goToPay()">Abhi Khareedein — USDT</button>
+  </div>
+</div>
+
+<!-- PAYMENT SCREEN -->
+<div class="screen" id="payment">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('home')">◀ Wapas</button>
+    <div class="topbar-title">Payment</div>
+    <div class="topbar-spacer"></div>
+  </div>
+  <div class="scroll">
+    <div class="pay-card">
+      <div class="pay-row">
+        <span class="pay-label">Package</span>
+        <span class="pay-val" id="pay-pkg">—</span>
+      </div>
+      <div class="pay-row">
+        <span class="pay-label">Username</span>
+        <span class="pay-val" id="pay-user">—</span>
+      </div>
+      <div class="pay-row">
+        <span class="pay-label">Network</span>
+        <span class="pay-val">USDT TRC-20</span>
+      </div>
+      <div class="pay-row">
+        <span class="pay-label">Order ID</span>
+        <span class="pay-val" id="pay-oid" style="font-size:11px;font-family:'Courier New',monospace">—</span>
+      </div>
+      <div class="pay-row">
+        <span class="pay-label">Seller</span>
+        <span class="pay-val" style="color:#5b9bd5">@sajawalbudhana3</span>
+      </div>
+    </div>
+    <div class="amount-box">
+      <div class="amount-label">YAHI RAQAM BHEJEIN</div>
+      <div class="amount-val" id="pay-amt">0.00 USDT</div>
+      <div class="amount-net">TRON (TRC-20) network pe</div>
+    </div>
+    <div class="wallet-box">
+      <div class="wallet-label">USDT Wallet Address</div>
+      <div class="wallet-addr" id="wallet-addr">TTWYTUp1VEbTkQJcwnmujwsfKJ6Ud3Y3au</div>
+      <button class="copy-btn" id="copy-btn" onclick="copyWallet()">📋 Address Copy Karein</button>
+    </div>
+    <div class="warning-box">
+      ⚠️ Sirf TRC-20 (TRON) network use karein. Galat network pe bhejne par funds waapas nahi honge. Exact amount hi bhejein.
+    </div>
+    <button class="buy-btn" onclick="showScreen('verify')" style="margin-bottom:20px">✅ Maine Bhej Diya — Verify Karein</button>
+  </div>
+</div>
+
+<!-- VERIFY SCREEN -->
+<div class="screen" id="verify">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('payment')">◀ Wapas</button>
+    <div class="topbar-title">Verify Transaction</div>
+    <div class="topbar-spacer"></div>
+  </div>
+  <div class="verify-section">
+    <div class="verify-title">Transaction ID (TxID) darj karein</div>
+    <div class="verify-sub">TronScan (tronscan.org) pe jaein, apna wallet open karein, transaction find karein aur TxID copy karke yahan paste karein.</div>
+    <div id="verify-status"></div>
+    <input class="txid-input" id="txid-field" placeholder="TxID yahan paste karein...">
+    <button class="verify-btn" onclick="verifyTx()">🔍 Blockchain Pe Verify Karein</button>
+  </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="screen" id="success">
+  <div class="topbar">
+    <div class="topbar-title">Order Confirmed ✓</div>
+  </div>
+  <div class="success-wrap">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Order Ho Gaya!</div>
+    <div class="success-sub">Aapka payment verify ho gaya hai.<br>@sajawalbudhana3 1–6 ghante mein deliver karega.</div>
+    <div class="success-card">
+      <div class="s-row">
+        <span class="s-label">Package</span>
+        <span class="s-val" id="s-pkg">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label">Username</span>
+        <span class="s-val" id="s-user">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label">Paid</span>
+        <span class="s-val" style="color:#3ecf6e" id="s-amt">—</span>
+      </div>
+      <div class="s-row">
+        <span class="s-label">Order ID</span>
+        <span class="s-val" style="font-size:11px;font-family:'Courier New',monospace" id="s-oid">—</span>
+      </div>
+    </div>
+    <button class="buy-btn" onclick="showScreen('home')" style="margin-bottom:10px">🏠 Ghar Wapas Jaein</button>
+    <button class="copy-btn" onclick="showAdminPanel()">🔐 Admin Panel</button>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div class="screen" id="admin">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('home')">◀ Wapas</button>
+    <div class="topbar-title">Admin Panel</div>
+    <div class="topbar-spacer"></div>
+  </div>
+  <div class="scroll">
+    <div class="admin-note">
+      ⚡ Yeh sirf aapke liye hai @sajawalbudhana3. Yahan saare pending orders dikhengi — deliver karne ke baad "Delivered" mark karein.
+    </div>
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-num" id="a-total">0</div>
+        <div class="stat-lbl">Total Orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="a-pending" style="color:var(--star)">0</div>
+        <div class="stat-lbl">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="a-rev" style="color:var(--green)">$0</div>
+        <div class="stat-lbl">USDT Earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="a-done" style="color:var(--blue)">0</div>
+        <div class="stat-lbl">Delivered</div>
+      </div>
+    </div>
+    <p class="sec-label">Orders</p>
+    <div id="admin-list">
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        Abhi koi order nahi hai
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== STATE ==========
+var S = {
+  pkg: '', price: '', type: '', username: '',
+  orderId: '', orders: JSON.parse(localStorage.getItem('saj_orders') || '[]')
+};
+var WALLET = 'TTWYTUp1VEbTkQJcwnmujwsfKJ6Ud3Y3au';
+
+// ========== TELEGRAM INIT ==========
+if (window.Telegram && window.Telegram.WebApp) {
+  var tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0f1923');
+  tg.setBackgroundColor('#0f1923');
+}
+
+// ========== TABS ==========
+function switchTab(t) {
+  document.getElementById('tab-stars').style.display = t === 'stars' ? 'block' : 'none';
+  document.getElementById('tab-premium').style.display = t === 'premium' ? 'block' : 'none';
+  document.getElementById('tab-stars-btn').classList.toggle('on', t === 'stars');
+  document.getElementById('tab-prem-btn').classList.toggle('on', t === 'premium');
+  S.pkg = ''; S.price = ''; S.type = '';
+  document.querySelectorAll('.pkg,.prem-pkg').forEach(function(e) { e.classList.remove('sel','prem-sel'); });
+  updateBuyBtn();
+}
+
+// ========== SELECT PACKAGE ==========
+function selectPkg(el, name, price, type) {
+  document.querySelectorAll('.pkg,.prem-pkg').forEach(function(e) { e.classList.remove('sel','prem-sel'); });
+  el.classList.add(type === 'prem' ? 'prem-sel' : 'sel');
+  S.pkg = name; S.price = price; S.type = type;
+  updateBuyBtn();
+}
+
+function updateBuyBtn() {
+  var btn = document.getElementById('buy-btn');
+  var info = document.getElementById('sel-info');
+  if (S.pkg) {
+    btn.disabled = false;
+    info.textContent = S.pkg + ' — ' + S.price + ' USDT';
+  } else {
+    btn.disabled = true;
+    info.textContent = 'Package chunein aur username darj karein';
+  }
+}
+
+// ========== GO TO PAYMENT ==========
+function goToPay() {
+  var un = (S.type === 'prem'
+    ? document.getElementById('uname-prem')
+    : document.getElementById('uname-stars')).value.trim();
+  if (!un) { alert('Pehle apna Telegram username darj karein'); return; }
+  if (!un.startsWith('@')) un = '@' + un;
+  S.username = un;
+  S.orderId = 'SAJ-' + Date.now().toString(36).toUpperCase();
+  document.getElementById('pay-pkg').textContent = S.pkg;
+  document.getElementById('pay-user').textContent = un;
+  document.getElementById('pay-oid').textContent = S.orderId;
+  document.getElementById('pay-amt').textContent = S.price + ' USDT';
+  document.getElementById('verify-status').innerHTML = '';
+  document.getElementById('txid-field').value = '';
+  showScreen('payment');
+}
+
+// ========== COPY WALLET ==========
+function copyWallet() {
+  var btn = document.getElementById('copy-btn');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(WALLET).then(function() {
+      btn.textContent = '✅ Copied!';
+      setTimeout(function() { btn.textContent = '📋 Address Copy Karein'; }, 2500);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = WALLET; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✅ Copied!';
+    setTimeout(function() { btn.textContent = '📋 Address Copy Karein'; }, 2500);
+  }
+}
+
+// ========== VERIFY TX ==========
+function verifyTx() {
+  var txid = document.getElementById('txid-field').value.trim();
+  if (txid.length < 10) {
+    document.getElementById('verify-status').innerHTML =
+      '<div class="status-box fail"><div class="status-icon">❌</div><div class="status-text">Valid TxID darj karein</div><div class="status-sub">TronScan se copy karein</div></div>';
+    return;
+  }
+  document.getElementById('verify-status').innerHTML =
+    '<div class="status-box checking"><div class="spinner"></div><div class="status-text">Blockchain check ho raha hai...</div><div class="status-sub">TRON network pe transaction verify kar rahe hain</div></div>';
+
+  // Real-world mein yahan TronGrid API call hogi
+  // GET https://api.trongrid.io/v1/transactions/{txid}
+  // Yeh demo simulation hai — production mein apna backend lagao
+  setTimeout(function() {
+    var order = {
+      id: S.orderId,
+      pkg: S.pkg,
+      price: S.price,
+      user: S.username,
+      txid: txid,
+      status: 'pending',
+      time: new Date().toLocaleString('ur-PK')
+    };
+    S.orders.push(order);
+    localStorage.setItem('saj_orders', JSON.stringify(S.orders));
+
+    document.getElementById('s-pkg').textContent = S.pkg;
+    document.getElementById('s-user').textContent = S.username;
+    document.getElementById('s-amt').textContent = S.price + ' USDT';
+    document.getElementById('s-oid').textContent = S.orderId;
+    showScreen('success');
+  }, 2500);
+}
+
+// ========== ADMIN ==========
+function showAdminPanel() {
+  updateAdmin(); showScreen('admin');
+}
+
+function updateAdmin() {
+  var orders = S.orders;
+  var pending = orders.filter(function(o) { return o.status === 'pending'; });
+  var done = orders.filter(function(o) { return o.status === 'done'; });
+  var rev = orders.reduce(function(s, o) { return s + parseFloat(o.price); }, 0);
+  document.getElementById('a-total').textContent = orders.length;
+  document.getElementById('a-pending').textContent = pending.length;
+  document.getElementById('a-rev').textContent = '$' + rev.toFixed(2);
+  document.getElementById('a-done').textContent = done.length;
+
+  if (orders.length === 0) {
+    document.getElementById('admin-list').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">📭</div>Abhi koi order nahi hai</div>';
+    return;
+  }
+  var html = '';
+  orders.slice().reverse().forEach(function(o, ri) {
+    var realIdx = orders.length - 1 - ri;
+    html += '<div class="order-item' + (o.status === 'done' ? ' done' : '') + '">' +
+      '<div class="order-top">' +
+      '<span class="order-id">' + o.id + '</span>' +
+      '<span class="order-badge ' + (o.status === 'done' ? 'badge-d' : 'badge-p') + '">' +
+      (o.status === 'done' ? '✓ Delivered' : '⏳ Pending') + '</span>' +
+      '</div>' +
+      '<div class="order-pkg">' + o.pkg + '</div>' +
+      '<div class="order-user">' + o.user + '</div>' +
+      '<div class="txid-show">TxID: ' + o.txid.substring(0, 24) + '...</div>' +
+      '<div class="order-meta">' +
+      '<span class="order-price">' + o.price + ' USDT</span>' +
+      '<span class="order-time">' + o.time + '</span>' +
+      '</div>' +
+      (o.status === 'pending' ? '<button class="mark-btn" onclick="markDone(' + realIdx + ')">✅ Delivered Mark Karein</button>' : '') +
+      '</div>';
+  });
+  document.getElementById('admin-list').innerHTML = html;
+}
+
+function markDone(i) {
+  S.orders[i].status = 'done';
+  localStorage.setItem('saj_orders', JSON.stringify(S.orders));
+  updateAdmin();
+}
+
+// ========== SCREEN SWITCH ==========
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
